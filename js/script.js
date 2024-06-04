@@ -1,38 +1,16 @@
 (() => {
   const arr = [];
 
+  const textTemplate = document.querySelector('#template__list').content;
+  const movieItemTemplate = textTemplate.querySelector('.movie__item');
+
   const $inputText = document.querySelector('.js-input');
   const $form = document.querySelector('.app');
   const $ul = document.querySelector('.movie__list');
+  let items = $ul.children;
 
   const $img = document.createElement('img');
   $img.src = './img/btn-delete.svg';
-
-  function createItemText() {
-    const textInInput = $inputText.value.trim();
-    const $p = document.createElement('p');
-    $p.classList.add('movie__item-text');
-    $p.textContent = textInInput;
-    return $p;
-  }
-
-  function createItemImg() {
-    return $img;
-  }
-
-  function createItemButton() {
-    const $button = document.createElement('button');
-    $button.classList.add('btn');
-    $button.append(createItemImg());
-    return $button;
-  }
-
-  function createInputRadio() {
-    const $inputRadio = document.createElement('input');
-    $inputRadio.type = 'radio';
-    $inputRadio.classList.add('input-radio');
-    return $inputRadio;
-  }
 
   function getTextFromUser() {
     if (!$inputText.value.trim()) {
@@ -43,7 +21,7 @@
     return text;
   }
 
-  function trackText(text, isDone, img) {
+  function addTextInArray(text, isDone, img) {
     arr.push({
       text: text,
       isDone: isDone,
@@ -51,32 +29,41 @@
     });
   }
 
-  function renderList(arr) {
-    let movieListHTML = '';
-
-    arr.forEach((item) => {
-      movieListHTML += `<li>
-          <input class='input-radio js-input-radio' type="radio">
-          <p class="movie__item-text">${item.text}</p>
-          <img src='${item.img}'>
-        </li>`;
-    });
-
-    clearInput();
-
-    console.log(arr);
-
-    $ul.innerHTML = movieListHTML;
-  }
-
   function clearInput() {
     $inputText.value = '';
+  }
+
+  function functionalEvents(item, selector, eventElement) {
+    const element = item.querySelector(selector);
+    element.addEventListener(eventElement, function () {
+      const indexOfItem = Array.from(items).indexOf(item);
+      if (eventElement === 'click') {
+        arr.splice(indexOfItem, 1);
+        item.remove();
+      } else {
+        const svgPath = item.querySelector('.svg__path');
+        const text = item.querySelector('.movie__item-text');
+        arr[indexOfItem].isDone = true;
+        item.style.backgroundColor = '#2d2d2d';
+        svgPath.style.fill = 'grey';
+        text.style.textDecoration = 'line-through';
+        text.style.color = 'grey';
+      }
+    });
   }
 
   $form.addEventListener('submit', (e) => {
     e.preventDefault();
     const textFromUser = getTextFromUser();
-    trackText(textFromUser, false, $img.src);
-    renderList(arr);
+    if (!textFromUser) {
+      return;
+    }
+    const newItem = movieItemTemplate.cloneNode(true);
+    const itemDescr = newItem.querySelector('.movie__item-text');
+    itemDescr.textContent = textFromUser;
+    $ul.appendChild(newItem);
+    functionalEvents(newItem, '.js-btn-remove', 'click');
+    functionalEvents(newItem, '.js-input-radio', 'change');
+    addTextInArray(textFromUser, false, $img.src);
   });
 })();
